@@ -1,0 +1,120 @@
+body {
+  background-color: #272727;
+}
+#mainHeader {
+  padding: 10px;
+}
+#mainHeader h1 {
+  position: relative;
+  margin: 0 auto;
+  width: 250px;
+  color: #fff;
+}
+#mainContent {
+  margin: 0;
+  padding: 0;
+  height: auto;
+}
+#videoContainer {
+  position: relative;
+  margin: 20px 0;
+  padding: 0;
+  width: 100%;
+}
+video {
+  display: block;
+  position: relative;
+  margin: 0 auto;
+  padding: 0;
+}
+.videoClass {
+  border: 5px solid white;
+}
+.extraPadding {
+  padding: 20px;
+}
+#outputContainer {
+  padding: 10px;
+  background-color: #8a8a8a;
+}
+.display {
+  display: inline-block;
+  margin: 5px;
+  padding: 5px;
+  width: 220px;
+  text-align: center;
+  color: #d7d7d7;
+  background-color: #272727;
+}
+.displayCC {
+  display: inline-block;
+  margin: 5px;
+  padding: 5px;
+  width: 464px;
+  text-align: center;
+  color: #d7d7d7;
+  background-color: #272727;
+}
+#timeDisplay:before {
+  content: "Time: ";
+}
+#playbackDisplay:before {
+  content: "Playback state: ";
+}
+#networkDisplay:before {
+  content: "Network state: ";
+}
+#formatDisplay:before {
+  content: "Format used: ";
+}
+#loadedDisplay:before {
+  content: "Loading: ";
+}
+#loopDisplay:before {
+  content: "Looped: ";
+}
+#muteDisplay:before {
+  content: "Muted: ";
+}
+#controlsContainer {
+  position: relative;
+  margin: 0 auto;
+  padding: 10px;
+  width: 505px;
+  background-color: #d7d7d7;
+}
+.inputFields {
+  width: 40px;
+  text-align: center;
+}
+#seekSlider {
+  margin: 10px;
+}
+form {
+  display: inline-block;
+}
+#snapShotContainer {
+  position: relative;
+  margin: 10px auto;
+  padding: 10px;
+  width: auto;
+  background-color: #9d9ea3;
+}
+#snapShotContainer img {
+  display: block;
+  position: relative;
+  margin: 10px auto;
+  border: 2px solid white;
+}
+#snapShotContainer h2 {
+  position: relative;
+  margin: 0 auto;
+  width: 145px;
+  color: #fff;
+}
+#mainFooter small {
+  position: relative;
+  left: 50%;
+  margin: 0 0 0 -44px;
+  width: 88px;
+}
