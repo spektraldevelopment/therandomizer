@@ -19,7 +19,7 @@ function SpektralTube(id, container, paramObj) {
 
 		//Inject iframe API
 		injectIframeAPI();
-		trace('initPlayer');
+		//trace('initPlayer');
 	}
 
 	function injectIframeAPI() {
@@ -27,14 +27,14 @@ function SpektralTube(id, container, paramObj) {
 		tag.src = "https://www.youtube.com/iframe_api";
 		var firstScriptTag = document.getElementsByTagName('script')[0];
 		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-		trace('injectIframeAPI');
+		//trace('injectIframeAPI');
 	}
 
 	function onPlayerReady(event) {
 		player = event.target;
 		player.playVideo();
 		triggerEvent(window, playerReadyEvent)
-		trace('onPlayerReady');
+		//trace('onPlayerReady');
 	}
 
 	function onPlayerPlaybackQualityChange(event) {
@@ -67,7 +67,7 @@ function SpektralTube(id, container, paramObj) {
 				'onError': onPlayerError
 			}
 		});
-		trace('onYouTubeIframeAPIReady');
+		//trace('onYouTubeIframeAPIReady');
 	}
 
 	this.onReady = function(callback) {
@@ -76,17 +76,17 @@ function SpektralTube(id, container, paramObj) {
 
 	this.play = function() {
 		player.playVideo();
-		trace('Play');
+		//trace('Play');
 	}
 
 	this.stop = function() {
 		player.stopVideo();
-		trace('Play');
+		//trace('Play');
 	}
 
 	this.volume = function(level) {
-		trace('ID is: ' + id);
-		trace("volume: " + level);
+		//trace('ID is: ' + id);
+		//trace("volume: " + level);
 		player.setVolume(level);
 	}
 
