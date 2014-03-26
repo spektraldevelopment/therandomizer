@@ -1,19 +1,22 @@
 //////////////////////
 ////Spektral Tube
 //////////////////////
-function SpektralTube(id, paramObj) {
+function SpektralTube(id, container, paramObj) {
 
 	//Private Var
 	var player, stID = id,
 		videoID,
 		playerWidth, playerHeight,
-		done = false;
+		done = false, playerReadyEvent;
 
 	//Public Var
 	this.id = id;
 
 	//Private functions
 	function initPlayer() {
+		//Create playerready event
+		playerReadyEvent = createEvent('playerready')
+
 		//Inject iframe API
 		injectIframeAPI();
 		trace('initPlayer');
@@ -27,25 +30,10 @@ function SpektralTube(id, paramObj) {
 		trace('injectIframeAPI');
 	}
 
-	function onYouTubeIframeAPIReady() {
-		trace("onYouTubeIframeAPIReady start");
-		player = new YT.Player('videoContainer', {
-			width: playerWidth,
-			height: playerHeight,
-			videoId: videoID,
-			events: {
-				'onReady': onPlayerReady,
-				'onPlaybackQualityChange': onPlayerPlaybackQualityChange,
-				'onStateChange': onPlayerStateChange,
-				'onError': onPlayerError
-			}
-		});
-		trace('player: ', 'dir', player);
-		trace('onYouTubeIframeAPIReady');
-	}
-
 	function onPlayerReady(event) {
-		event.target.playVideo();
+		player = event.target;
+		player.playVideo();
+		triggerEvent(window, playerReadyEvent)
 		trace('onPlayerReady');
 	}
 
@@ -65,7 +53,27 @@ function SpektralTube(id, paramObj) {
 		trace('Player Error');
 	}
 
+
 	//Public functions
+	window.onYouTubeIframeAPIReady = function() {
+		player = new YT.Player(container, {
+			width: playerWidth,
+			height: playerHeight,
+			videoId: videoID,
+			events: {
+				'onReady': onPlayerReady,
+				'onPlaybackQualityChange': onPlayerPlaybackQualityChange,
+				'onStateChange': onPlayerStateChange,
+				'onError': onPlayerError
+			}
+		});
+		trace('onYouTubeIframeAPIReady');
+	}
+
+	this.onReady = function(callback) {
+		attachEventListener(window, 'playerready', callback);
+	}
+
 	this.play = function() {
 		player.playVideo();
 		trace('Play');
@@ -76,8 +84,27 @@ function SpektralTube(id, paramObj) {
 		trace('Play');
 	}
 
-	this.changeVolume = function(level) {
+	this.volume = function(level) {
+		trace('ID is: ' + id);
+		trace("volume: " + level);
 		player.setVolume(level);
+	}
+
+	this.getVolume = function() {
+		return player.getVolume();
+	}
+
+	this.toggleMute = function() {
+		var muted = player.isMuted();
+		if (muted === true) {
+			player.unMute();
+		} else {
+			player.mute();
+		}
+	}
+
+	this.getMuted = function() {
+		return player.isMuted;
 	}
 
 	//Utils
@@ -101,6 +128,57 @@ function SpektralTube(id, paramObj) {
 		return retrievedParam;
 	}
 
+	//////////////////
+    ////CREATE EVENT
+    /////////////////
+    function createEvent(eventName, detail, bub, can) {
+        detail = detail || null;
+        bub = bub || true;
+        can = can || true;
+
+        var evt;
+        evt = new CustomEvent(eventName, { detail: detail, bubbles: bub, cancelable: can });
+        if(evt === undefined) {
+            evt = new Event(eventName);
+        }
+        return evt;
+    }
+
+    //////////////////
+    ////TRIGGER EVENT
+    /////////////////
+    function triggerEvent(obj, evt) {
+        obj.dispatchEvent(evt);
+    }
+
+    //////////////////
+    ////ATTACH EVENT LISTENER
+    /////////////////
+    function attachEventListener(eventTarget, eventType, eventHandler) {
+        if (eventTarget.addEventListener) {
+            eventTarget.addEventListener(eventType, eventHandler, false);
+        } else if (eventTarget.attachEvent) {
+            eventType = "on" + eventType;
+            eventTarget.attachEvent(eventType, eventHandler);
+        } else {
+            eventTarget["on" + eventType] = eventHandler;
+        }
+    }
+
+    //////////////////
+    ////DETACH EVENT LISTENER
+    /////////////////
+    function detachEventListener(eventTarget, eventType, eventHandler) {
+        if (eventTarget.removeEventListener) {
+            eventTarget.removeEventListener(eventType, eventHandler, false);
+        } else if (eventTarget.detachEvent) {
+            eventType = "on" + eventType;
+            eventTarget.detachEvent(eventType, eventHandler);
+        } else {
+            eventTarget["on" + eventType] = null;
+        }
+    }
+
 	////////////////////
 	////TRACE
 	////////////////////
@@ -115,7 +193,7 @@ function SpektralTube(id, paramObj) {
 	}
 
 	//Parameters
-	videoID = getParameter(paramObj, 'videoID', 'M7lc1UVf-VE');
+	videoID = getParameter(paramObj, 'videoID', 'b7mixrO2lzA');
 	playerWidth = getParameter(paramObj, 'width', 640);
 	playerHeight = getParameter(paramObj, 'height', 390);
 
@@ -128,4 +206,4 @@ function SpektralTube(id, paramObj) {
 	initPlayer();
 
 	trace("Spektral Tube: id: " + stID + " info: " + JSON.stringify(this));
-};
+}(window);

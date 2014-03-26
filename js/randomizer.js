@@ -1,11 +1,17 @@
 //VARS
 var
-    st, copyRight = document.getElementById('copyRight');
+    st, st2, copyRight = document.getElementById('copyRight');
 
 init();
 
 function init() {
-    st = new SpektralTube('theRandomizer');
+    st = new SpektralTube('theRandomizer', 'videoContainer');
+    st.onReady(onReadyPlayer);
+}
+
+function onReadyPlayer(evt) {
+    st.volume(0);
+    console.log("st onReadyPlayer")
 }
 
 setCopyright(copyRight);
