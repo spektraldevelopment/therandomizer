@@ -1,7 +1,8 @@
 //VARS
 var
-st, st2, copyRight = document.getElementById('copyRight'),
-controls = document.getElementById("controlsContainer"), buttonArray;
+st, randTimer = false, isRand = false, randRange = {}, copyRight = document.getElementById('copyRight'),
+controls = document.getElementById('controlsContainer'), buttonArray,
+addressField = document.getElementById('addressField'), playState, randNum;
 
 init();
 setCopyright(copyRight);
@@ -13,13 +14,13 @@ function init() {
 }
 
 function onReadyPlayer(evt) {
-    st.volume(0);
+    //st.volume(0);
     initControls();
     console.log("st onReadyPlayer")
 }
 
 function initControls() {
-    buttonArray = getChildren(controls, 'input');
+    buttonArray = document.querySelectorAll('input');
     for (var i = 0; i < buttonArray.length; i += 1) {
         attachEventListener(buttonArray[i], 'click', onButtonClick);
     }
@@ -28,9 +29,47 @@ function initControls() {
 function onButtonClick(evt) {
     var name = evt.target.name;
     console.log("Button Clicked: " + name);
+    if (name === 'loadVideo') {
+        st.loadVideo(addressField.value);
+    } else if (name === 'mute') {
+        st.toggleMute();
+    } else if (name === 'randomize') {
+        startRandomizer();
+    }
+}
+
+function startRandomizer() {
+    isRand = true;
+    randRange['start'] = 0;
+    randRange['end'] = 20;
+    if (randTimer !== false) {
+        clearInterval(randTimer);
+    }
+    randTimer = createTimer(0.1, randomize);
+}
+
+function stopRandomizer() {
+    isRand = false;
+    clearInterval(randTimer);
+}
+
+function randomize() {
+    playState = st.getPlayerState()
+    if (playState === 'PLAYING') {
+        randNum = getRandomNum(randRange.start, randRange.end);
+        st.seek(randNum);
+    }
 }
 
 //UTILS
+
+////////////////////
+////CREATE TIMER
+////////////////////
+function createTimer (time, handler) {
+    var convertedTime = time * 1000;
+    return setInterval(handler, convertedTime);
+}
 
 //////////////////
 ////ATTACH EVENT LISTENER
@@ -61,32 +100,6 @@ function detachEventListener(eventTarget, eventType, eventHandler) {
 }
 
 //////////////////
-////GET CHILDREN
-/////////////////
-function getChildren(parent, type) {
-    type = type || "all"
-    var
-    children = parent.childNodes,
-        childArr = [],
-        i, isEl, nodeType;
-
-    for (i = 0; i < children.length; i += 1) {
-        isEl = isElement(children[i]);
-        if (isEl === true) {
-            nodeType = getType(children[i]);
-            if (type === "all") {
-                childArr.push(children[i]);
-            } else {
-                if (nodeType === type) {
-                    childArr.push(children[i]);
-                }
-            }
-        }
-    }
-    return childArr;
-}
-
-//////////////////
 ////IS ELEMENT
 /////////////////
 function isElement(possibleElement) {
@@ -113,6 +126,33 @@ function getType(obj) {
     return type;
 }
 
+//////////////////////
+////FORMAT TIME
+//////////////////////
+function formatTime (time) {
+    var
+        formattedTime = {},
+        hours = Math.floor(time / (60 * 60)),
+        minDivisor = time % (60 * 60),
+        minutes = Math.floor(minDivisor / 60),
+        seconds = Math.floor(minDivisor % 60),
+        secondsString = seconds.toString();
+
+    if (seconds < 10) {
+        secondsString = "0" + secondsString;
+    }
+
+    formattedTime["hours"] = hours.toString();
+    formattedTime["minutes"] = minutes.toString();
+    formattedTime["seconds"] = secondsString;
+
+    formattedTime["hoursNum"] = hours;
+    formattedTime["minutesNum"] = minutes;
+    formattedTime["secondsNum"] = seconds;
+
+    return formattedTime;
+}
+
 ////////////////////
 ////SET COPYRIGHT
 ////////////////////
@@ -128,4 +168,8 @@ function setCopyright(container, startDate) {
         copyString += currentYear;
     }
     container.innerHTML = copyString;
+}
+
+function getRandomNum (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }

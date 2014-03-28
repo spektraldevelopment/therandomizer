@@ -7,7 +7,8 @@ function SpektralTube(id, container, paramObj) {
 	var player, stID = id,
 		videoID,
 		playerWidth, playerHeight,
-		done = false, playerReadyEvent;
+		done = false,
+		playerReadyEvent, playerState = 'UNSTARTED';
 
 	//Public Var
 	this.id = id;
@@ -46,13 +47,25 @@ function SpektralTube(id, container, paramObj) {
 			setTimeout(this.stop, 6000);
 			done = true;
 		}
-		trace('onPlayerStateChange');
+		if (event.data === -1) {
+			playerState = 'UNSTARTED';
+		} else if (event.data === 0) {
+			playerState = 'ENDED';
+		} else if (event.data === 1) {
+			playerState = 'PLAYING';
+		} else if (event.data === 2) {
+			playerState = 'PAUSED';
+		} else if (event.data === 3) {
+			playerState = 'BUFFERING';
+		} else if (event.data === 5) {
+			playerState = 'VIDEO_CUED';
+		}
+		trace('onPlayerStateChange: ' + playerState);
 	}
 
-	function onPlayerError() {
-		trace('Player Error');
+	function onPlayerError(event) {
+		trace('Player Error: ' + event.data);
 	}
-
 
 	//Public functions
 	window.onYouTubeIframeAPIReady = function() {
@@ -60,6 +73,7 @@ function SpektralTube(id, container, paramObj) {
 			width: playerWidth,
 			height: playerHeight,
 			videoId: videoID,
+			suggestedQuality: 'small',
 			events: {
 				'onReady': onPlayerReady,
 				'onPlaybackQualityChange': onPlayerPlaybackQualityChange,
@@ -68,6 +82,16 @@ function SpektralTube(id, container, paramObj) {
 			}
 		});
 		//trace('onYouTubeIframeAPIReady');
+	}
+
+	this.loadVideo = function(url, start, quality) {
+		start = start || 0;
+		quality = quality || 'large';
+
+		var vidID = getQueryString(url).v;
+		console.log("vidID: " + vidID);
+
+		player.loadVideoById(vidID, start, quality);
 	}
 
 	this.onReady = function(callback) {
@@ -82,6 +106,15 @@ function SpektralTube(id, container, paramObj) {
 	this.stop = function() {
 		player.stopVideo();
 		//trace('Play');
+	}
+
+	this.pause = function() {
+		player.pauseVideo();
+	}
+
+	this.seek = function(seekNum, seekAhead) {
+		seekAhead = seekAhead || true;
+		player.seekTo(seekNum, seekAhead);
 	}
 
 	this.volume = function(level) {
@@ -107,6 +140,14 @@ function SpektralTube(id, container, paramObj) {
 		return player.isMuted;
 	}
 
+	this.getPlayerState = function() {
+		return playerState;
+	}
+
+	this.getVideoDuration = function() {
+		return player.getDuration();
+	}
+
 	//Utils
 	////////////////////
 	////GET PARAMETER
@@ -129,55 +170,145 @@ function SpektralTube(id, container, paramObj) {
 	}
 
 	//////////////////
-    ////CREATE EVENT
-    /////////////////
-    function createEvent(eventName, detail, bub, can) {
-        detail = detail || null;
-        bub = bub || true;
-        can = can || true;
+	////CREATE EVENT
+	/////////////////
+	function createEvent(eventName, detail, bub, can) {
+		detail = detail || null;
+		bub = bub || true;
+		can = can || true;
 
-        var evt;
-        evt = new CustomEvent(eventName, { detail: detail, bubbles: bub, cancelable: can });
-        if(evt === undefined) {
-            evt = new Event(eventName);
-        }
-        return evt;
-    }
+		var evt;
+		evt = new CustomEvent(eventName, {
+			detail: detail,
+			bubbles: bub,
+			cancelable: can
+		});
+		if (evt === undefined) {
+			evt = new Event(eventName);
+		}
+		return evt;
+	}
 
-    //////////////////
-    ////TRIGGER EVENT
-    /////////////////
-    function triggerEvent(obj, evt) {
-        obj.dispatchEvent(evt);
-    }
+	//////////////////
+	////TRIGGER EVENT
+	/////////////////
+	function triggerEvent(obj, evt) {
+		obj.dispatchEvent(evt);
+	}
 
-    //////////////////
-    ////ATTACH EVENT LISTENER
-    /////////////////
-    function attachEventListener(eventTarget, eventType, eventHandler) {
-        if (eventTarget.addEventListener) {
-            eventTarget.addEventListener(eventType, eventHandler, false);
-        } else if (eventTarget.attachEvent) {
-            eventType = "on" + eventType;
-            eventTarget.attachEvent(eventType, eventHandler);
-        } else {
-            eventTarget["on" + eventType] = eventHandler;
-        }
-    }
+	//////////////////
+	////ATTACH EVENT LISTENER
+	/////////////////
+	function attachEventListener(eventTarget, eventType, eventHandler) {
+		if (eventTarget.addEventListener) {
+			eventTarget.addEventListener(eventType, eventHandler, false);
+		} else if (eventTarget.attachEvent) {
+			eventType = "on" + eventType;
+			eventTarget.attachEvent(eventType, eventHandler);
+		} else {
+			eventTarget["on" + eventType] = eventHandler;
+		}
+	}
 
-    //////////////////
-    ////DETACH EVENT LISTENER
-    /////////////////
-    function detachEventListener(eventTarget, eventType, eventHandler) {
-        if (eventTarget.removeEventListener) {
-            eventTarget.removeEventListener(eventType, eventHandler, false);
-        } else if (eventTarget.detachEvent) {
-            eventType = "on" + eventType;
-            eventTarget.detachEvent(eventType, eventHandler);
-        } else {
-            eventTarget["on" + eventType] = null;
-        }
-    }
+	//////////////////
+	////DETACH EVENT LISTENER
+	/////////////////
+	function detachEventListener(eventTarget, eventType, eventHandler) {
+		if (eventTarget.removeEventListener) {
+			eventTarget.removeEventListener(eventType, eventHandler, false);
+		} else if (eventTarget.detachEvent) {
+			eventType = "on" + eventType;
+			eventTarget.detachEvent(eventType, eventHandler);
+		} else {
+			eventTarget["on" + eventType] = null;
+		}
+	}
+
+	////////////////////
+	////GET QUERY STRING
+	////////////////////
+	function getQueryString(url) {
+
+		var
+		queryParams = {},
+			queryString, valArray, i, value, hasAnd;
+
+		queryString = url.split("?").pop();
+
+		console.log("queryString: " + queryString);
+
+		hasAnd = detectCharacter(queryString, "&");
+		if (hasAnd === true) {
+			valArray = splitString(queryString, "&");
+			for (i = 0; i < valArray.length; i += 1) {
+				value = splitString(valArray[i], "=");
+				queryParams[value[0]] = value[1];
+			}
+		} else {
+			value = splitString(queryString, "=");
+			queryParams[value[0]] = value[1];
+		}
+		return queryParams;
+	}
+
+	//////////////////
+	////SPLIT STRING
+	//////////////////
+	function splitString(request, character) {
+
+		character = character || ",";
+
+		var
+		splitArray = [],
+			split,
+			i, detectChar = detectCharacter(request, character),
+			stripped;
+
+		if (detectChar === false && character !== " ") {
+			//Spektral.throwError("splitString: Could not split string because character [" + character + "] was not in string.");
+			trace("splitString: Could not split string because character [" + character + "] was not in string.", "warn");
+		} else {
+			if (character !== " ") {
+				split = request.split(character);
+			} else {
+				split = request.split(/[ ,]+/);
+			}
+		}
+
+		for (i = 0; i < split.length; i += 1) {
+			if (split[i] !== "") {
+				stripped = stripWhiteSpace(split[i]);
+				splitArray.push(stripped);
+			}
+		}
+		return splitArray;
+	}
+
+	//////////////////
+	////DETECT CHARACTER
+	//////////////////
+	function detectCharacter(request, character) {
+		var detected = false,
+			test = request.match(character);
+		if (test !== null) {
+			detected = true;
+		}
+		return detected;
+	}
+
+	//////////////////
+	////STRIP WHITE SPACE
+	//////////////////
+	function stripWhiteSpace(request, removeAll) {
+		removeAll = removeAll || false;
+		var newString;
+		if (removeAll !== false) {
+			newString = request.replace(/\s+/g, '');
+		} else {
+			newString = request.replace(/(^\s+|\s+$)/g, '');
+		}
+		return newString;
+	}
 
 	////////////////////
 	////TRACE
