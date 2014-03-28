@@ -1,8 +1,8 @@
 //VARS
 var
 st, randTimer = false, isRand = false, randRange = {}, copyRight = document.getElementById('copyRight'),
-controls = document.getElementById('controlsContainer'), buttonArray,
-addressField = document.getElementById('addressField'), playState, randNum;
+buttonArray, addressField = document.getElementById('addressField'), playState, randNum,
+randField = document.getElementById('randField');
 
 init();
 setCopyright(copyRight);
@@ -14,7 +14,7 @@ function init() {
 }
 
 function onReadyPlayer(evt) {
-    //st.volume(0);
+    st.volume(0);
     initControls();
     console.log("st onReadyPlayer")
 }
@@ -35,17 +35,19 @@ function onButtonClick(evt) {
         st.toggleMute();
     } else if (name === 'randomize') {
         startRandomizer();
+    } else if (name === 'stopRandomize') {
+        stopRandomizer();
     }
 }
 
 function startRandomizer() {
     isRand = true;
-    randRange['start'] = 0;
+    randRange['start'] = 18;
     randRange['end'] = 20;
     if (randTimer !== false) {
         clearInterval(randTimer);
     }
-    randTimer = createTimer(0.1, randomize);
+    randTimer = createTimer(randField.value, randomize);
 }
 
 function stopRandomizer() {
