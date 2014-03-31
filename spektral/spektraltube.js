@@ -60,7 +60,7 @@ function SpektralTube(id, container, paramObj) {
 		} else if (event.data === 5) {
 			playerState = 'VIDEO_CUED';
 		}
-		trace('onPlayerStateChange: ' + playerState);
+		//trace('onPlayerStateChange: ' + playerState);
 	}
 
 	function onPlayerError(event) {
@@ -146,6 +146,14 @@ function SpektralTube(id, container, paramObj) {
 
 	this.getVideoDuration = function() {
 		return player.getDuration();
+	}
+
+	this.getTimeCurrent = function() {
+		return player.getCurrentTime();
+	}
+
+	this.getPlayerIFrame = function() {
+		return player.getIframe();
 	}
 
 	//Utils

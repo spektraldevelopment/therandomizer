@@ -1,8 +1,20 @@
 //VARS
 var
-st, randTimer = false, isRand = false, randRange = {}, copyRight = document.getElementById('copyRight'),
-buttonArray, addressField = document.getElementById('addressField'), playState, randNum,
-randField = document.getElementById('randField');
+st, randTimer = false,
+    loopTimer = false,
+    isRand = false,
+    randRange = {}, isLooped = false,
+    loopRange = {}, copyRight = document.querySelector('#copyRight'),
+    buttonArray, addressField = document.querySelector('#addressField'),
+    playState, randNum,
+    vidContainer = document.querySelector('#videoContainer'),
+    randField = document.querySelector('#randField'),
+    randStartField = document.querySelector('#randStartField'),
+    randEndField = document.querySelector('#randEndField'),
+    loopStartField = document.querySelector('#loopStartField'),
+    loopEndField = document.querySelector('#loopEndField'),
+    snapShotContainer = document.querySelector('#snapShotContainer'),
+    currentTime;
 
 init();
 setCopyright(copyRight);
@@ -37,13 +49,19 @@ function onButtonClick(evt) {
         startRandomizer();
     } else if (name === 'stopRandomize') {
         stopRandomizer();
+    } else if (name === 'loop') {
+        startLoop();
+    } else if (name === 'stopLoop') {
+        stopLoop();
+    } else if (name === 'snapshot') {
+        snapShot(snapShotContainer);
     }
 }
 
 function startRandomizer() {
     isRand = true;
-    randRange['start'] = 18;
-    randRange['end'] = 20;
+    randRange['start'] = randStartField.value;
+    randRange['end'] = randEndField.value;
     if (randTimer !== false) {
         clearInterval(randTimer);
     }
@@ -53,24 +71,96 @@ function startRandomizer() {
 function stopRandomizer() {
     isRand = false;
     clearInterval(randTimer);
+    randTimer = false;
 }
 
 function randomize() {
-    playState = st.getPlayerState()
+    playState = st.getPlayerState();
     if (playState === 'PLAYING') {
         randNum = getRandomNum(randRange.start, randRange.end);
         st.seek(randNum);
     }
 }
 
+function startLoop() {
+    isLooped = true;
+    loopRange['start'] = loopStartField.value;
+    loopRange['end'] = loopEndField.value;
+    st.seek(loopRange.start);
+    if (loopTimer !== false) {
+        clearInterval(loopTimer);
+    }
+    loopTimer = createTimer(0.25, loop);
+}
+
+function loop() {
+    currentTime = st.getTimeCurrent();
+    playState = st.getPlayerState();
+    if (playState == 'PLAYING') {
+        if (currentTime >= loopRange.end) {
+            st.seek(loopRange.start);
+        }
+    }
+}
+
+function stopLoop() {
+    isLooped = false;
+    clearInterval(loopTimer);
+    loopTimer = false;
+}
+
+///////////////////////
+////SNAP SHOT
+//////////////////////
+function snapShot (container, type) {
+    type = type || "jpeg";
+    vidContainer = document.querySelector('#videoContainer');
+    //Maybe have this check if canvas exists, if not make it, etc.
+    var
+        canvas = document.createElement("canvas"),
+        videoDimensions = getDimensions(vidContainer), ctx,
+        dataURI, screenShotImg;
+
+   console.dir(vidContainer);
+
+    canvas.width = parseInt(videoDimensions.width, 10);
+    canvas.height = parseInt(videoDimensions.height, 10);
+    console.log("canvas.width: " + canvas.width + " canvas.height: " + canvas.height);
+    ctx = canvas.getContext("2d");
+    ctx.drawImage(st.getPlayerIFrame(), 0, 0, canvas.width, canvas.height);
+    dataURI = canvas.toDataURL("image/" + type);
+
+//    if (container !== undefined) {
+//        screenShotImg = document.createElement("img");
+//        //createSetAttribute(screenShotImg, "src", dataURI);
+//        screenShotImg.setAttribute("src", dataURI);
+//        container.appendChild(screenShotImg);
+//    }
+    return dataURI;
+}
+
+
 //UTILS
 
 ////////////////////
 ////CREATE TIMER
 ////////////////////
-function createTimer (time, handler) {
+function createTimer(time, handler) {
     var convertedTime = time * 1000;
     return setInterval(handler, convertedTime);
+}
+
+
+////////////////////
+////GET DIMENSIONS
+////////////////////
+function getDimensions(el) {
+    var dimObj = {};
+    dimObj['width'] = getStyle(el, 'width');
+    dimObj['height'] = getStyle(el, 'height');
+    console.log("getDimensions:" + JSON.stringify(dimObj));
+
+    return dimObj;
 }
 
 //////////////////
@@ -105,8 +195,9 @@ function detachEventListener(eventTarget, eventType, eventHandler) {
 ////IS ELEMENT
 /////////////////
 function isElement(possibleElement) {
-    var isAnElement = false, type = possibleElement.nodeType;
-    if(type === 1) {
+    var isAnElement = false,
+        type = possibleElement.nodeType;
+    if (type === 1) {
         isAnElement = true;
     }
     return isAnElement;
@@ -117,7 +208,7 @@ function isElement(possibleElement) {
 ////////////////////
 function getType(obj) {
     var type;
-    if(obj.nodeName !== undefined) {
+    if (obj.nodeName !== undefined) {
         //element
         type = (obj.nodeName);
     } else {
@@ -131,9 +222,9 @@ function getType(obj) {
 //////////////////////
 ////FORMAT TIME
 //////////////////////
-function formatTime (time) {
+function formatTime(time) {
     var
-        formattedTime = {},
+    formattedTime = {},
         hours = Math.floor(time / (60 * 60)),
         minDivisor = time % (60 * 60),
         minutes = Math.floor(minDivisor / 60),
@@ -155,6 +246,26 @@ function formatTime (time) {
     return formattedTime;
 }
 
+/////////////////
+////GET STYLE
+//////////////////
+function getStyle (element, styleProperty) {
+
+    styleProperty = styleProperty || undefined;
+    var style;
+    if(styleProperty !== undefined) {
+        try {
+            style = element.currentStyle[styleProperty];
+        } catch (err) {
+            style = document.defaultView.getComputedStyle(element, null).getPropertyValue(styleProperty);
+        }
+    } else {
+        console.log("getStyle: Could not get style.", "warn");
+    }
+
+    return style;
+};
+
 ////////////////////
 ////SET COPYRIGHT
 ////////////////////
@@ -172,6 +283,6 @@ function setCopyright(container, startDate) {
     container.innerHTML = copyString;
 }
 
-function getRandomNum (min, max) {
+function getRandomNum(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
