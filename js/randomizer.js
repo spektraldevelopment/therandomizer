@@ -7,7 +7,6 @@ st, randTimer = false,
     loopRange = {}, copyRight = document.querySelector('#copyRight'),
     buttonArray, addressField = document.querySelector('#addressField'),
     playState, randNum,
-    vidContainer = document.querySelector('#videoContainer'),
     randField = document.querySelector('#randField'),
     randStartField = document.querySelector('#randStartField'),
     randEndField = document.querySelector('#randEndField'),
@@ -108,37 +107,6 @@ function stopLoop() {
     clearInterval(loopTimer);
     loopTimer = false;
 }
-
-///////////////////////
-////SNAP SHOT
-//////////////////////
-function snapShot (container, type) {
-    type = type || "jpeg";
-    vidContainer = document.querySelector('#videoContainer');
-    //Maybe have this check if canvas exists, if not make it, etc.
-    var
-        canvas = document.createElement("canvas"),
-        videoDimensions = getDimensions(vidContainer), ctx,
-        dataURI, screenShotImg;
-
-   console.dir(vidContainer);
-
-    canvas.width = parseInt(videoDimensions.width, 10);
-    canvas.height = parseInt(videoDimensions.height, 10);
-    console.log("canvas.width: " + canvas.width + " canvas.height: " + canvas.height);
-    ctx = canvas.getContext("2d");
-    ctx.drawImage(st.getPlayerIFrame(), 0, 0, canvas.width, canvas.height);
-    dataURI = canvas.toDataURL("image/" + type);
-
-//    if (container !== undefined) {
-//        screenShotImg = document.createElement("img");
-//        //createSetAttribute(screenShotImg, "src", dataURI);
-//        screenShotImg.setAttribute("src", dataURI);
-//        container.appendChild(screenShotImg);
-//    }
-    return dataURI;
-}
-
 
 //UTILS
 
